@@ -370,7 +370,7 @@ function upsi_section_admin_profile_scripts(): void
         <div class="card-top"><div><p class="eyebrow">Trainer</p><h3>${v50SafeText(trainer.name || 'Trainer')}</h3></div><div class="card-icon">🏌️</div></div>
         <ul class="meta-list">
           <li><span>No. Phone</span><strong>${v50SafeText(trainer.phone || '-')}</strong></li>
-          <li><span>Email</span><strong>${v50SafeText(trainer.email || 'Email not provided')}</strong></li>
+          <li><span>Email</span><strong>${v50SafeText(trainer.email || '-')}</strong></li>
           <li><span>Alamat</span><strong>${v50SafeText(trainer.address || '-')}</strong></li>
           <li><span>Specialist</span><strong>${v50SafeText(trainer.description || 'Golf coaching and guided practice')}</strong></li>
           <li><span>Training price</span><strong>Discuss directly with trainer</strong></li>
@@ -775,14 +775,14 @@ function upsi_section_admin_profile_scripts(): void
 
   function v51WhatsappButton(phone = '', label = 'WhatsApp Trainer', text = '') {
     const number = v51WhatsappNumber(phone);
-    if (!number) return '<button class="btn btn-soft" type="button" disabled>No WhatsApp</button>';
+    if (!number) return '<button class="btn btn-soft" type="button" disabled>-</button>';
     const url = `https://wa.me/${number}?text=${encodeURIComponent(text || 'Hello, I want to discuss golf training at UPSI Driving Range.')}`;
     return `<a class="btn btn-soft whatsapp-btn" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>`;
   }
 
   function v51TrainerAvailabilityButton(trainerId = '', label = 'View Available Date') {
     const count = v51AvailableDatesForTrainer(trainerId).length;
-    return `<button class="btn btn-soft availability-btn" type="button" data-v51-view-trainer-dates="${escapeHtml(trainerId)}" ${count ? '' : 'disabled'}>${escapeHtml(count ? `${label} (${count})` : 'No available date')}</button>`;
+    return `<button class="btn btn-soft availability-btn" type="button" data-v51-view-trainer-dates="${escapeHtml(trainerId)}" ${count ? '' : 'disabled'}>${escapeHtml(count ? `${label} (${count})` : '-')}</button>`;
   }
 
   function v51OpenTrainerDatesModal(trainerId = '') {

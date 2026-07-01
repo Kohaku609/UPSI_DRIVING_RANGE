@@ -365,21 +365,70 @@ function upsi_section_user_home_scripts(): void
         available_date: localItem.date,
         status: localItem.status === 'Available' ? 'active' : 'inactive',
       };
-      let result;
-      if (typeof isUuid === 'function' && isUuid(localItem.id)) {
-        result = await supabaseClient.from(DB_TABLES.trainerAvailableDates).update(payload).eq('id', localItem.id).select('*, trainers:trainer_id(full_name)').maybeSingle();
-      } else {
-        result = await supabaseClient.from(DB_TABLES.trainerAvailableDates).upsert(payload, { onConflict: 'trainer_id,available_date' }).select('*, trainers:trainer_id(full_name)').maybeSingle();
+      let result = null;
+      const updateById = typeof isUuid === 'function' && isUuid(localItem.id);
+      if (updateById) {
+        result = await supabaseClient
+          .from(DB_TABLES.trainerAvailableDates)
+          .update(payload)
+          .eq('id', localItem.id)
+          .select('*, trainers:trainer_id(full_name)')
+          .maybeSingle();
+        if (!result?.error && !result?.data) {
+          result = null;
+        }
       }
-      if (result.error) {
-        console.error('V53 trainer date save error:', result.error);
+
+      if (!result) {
+        let existing = null;
+        const lookup = await supabaseClient
+          .from(DB_TABLES.trainerAvailableDates)
+          .select('id')
+          .eq('trainer_id', localItem.trainerId)
+          .eq('available_date', localItem.date)
+          .limit(1)
+          .maybeSingle();
+        if (!lookup.error && lookup.data) existing = lookup.data;
+        if (existing?.id) {
+          result = await supabaseClient
+            .from(DB_TABLES.trainerAvailableDates)
+            .update(payload)
+            .eq('id', existing.id)
+            .select('*, trainers:trainer_id(full_name)')
+            .maybeSingle();
+        } else {
+          result = await supabaseClient
+            .from(DB_TABLES.trainerAvailableDates)
+            .insert(payload)
+            .select('*, trainers:trainer_id(full_name)')
+            .maybeSingle();
+          if (result.error && result.error.message && /duplicate|unique/i.test(String(result.error.message))) {
+            const conflict = await supabaseClient
+              .from(DB_TABLES.trainerAvailableDates)
+              .select('id')
+              .eq('trainer_id', localItem.trainerId)
+              .eq('available_date', localItem.date)
+              .limit(1)
+              .maybeSingle();
+            if (!conflict.error && conflict.data?.id) {
+              result = await supabaseClient
+                .from(DB_TABLES.trainerAvailableDates)
+                .update(payload)
+                .eq('id', conflict.data.id)
+                .select('*, trainers:trainer_id(full_name)')
+                .maybeSingle();
+            }
+          }
+        }
+      }
+      if (result?.error || !result?.data) {
+        console.error('V53 trainer date save error:', result?.error || 'No data returned');
         toast('Trainer date failed to save. Run/check V49/V53 SQL policy.');
         return false;
       }
       console.debug('v53SaveTrainerDate result:', result);
       await v53FetchTrainerDatesFromSupabase();
-      // notify other parts of the app that trainer dates have been updated
-      try { document.dispatchEvent(new CustomEvent('trainerDatesUpdated', { detail: { trainerId: localItem.trainerId, date: localItem.date } })); } catch (e) { /* ignore */ }
+      try { document.dispatchEvent(new CustomEvent('trainerDatesUpdated', { detail: { trainerId: localItem.trainerId, date: localItem.date } })); } catch (e) { }
       return true;
     }
 

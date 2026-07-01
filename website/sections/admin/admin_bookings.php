@@ -416,7 +416,6 @@ function upsi_section_admin_bookings_scripts(): void
           <select name="targetType" data-slot-type required>
             <option value="both" ${selectedType === 'both' ? 'selected' : ''}>Driving Range & Trainer</option>
             <option value="driving" ${selectedType === 'driving' ? 'selected' : ''}>Driving Range Only</option>
-            <option value="trainer" ${selectedType === 'trainer' ? 'selected' : ''}>Trainer Only</option>
           </select>
         </label>
         <label class="wide">Target

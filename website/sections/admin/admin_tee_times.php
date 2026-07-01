@@ -456,7 +456,6 @@ function upsi_section_admin_tee_times_scripts(): void
           <select name="targetType" data-slot-type required>
             <option value="both" ${selectedType === 'both' ? 'selected' : ''}>Driving Range & Trainer</option>
             <option value="driving" ${selectedType === 'driving' ? 'selected' : ''}>Driving Range Only</option>
-            <option value="trainer" ${selectedType === 'trainer' ? 'selected' : ''}>Trainer Only</option>
           </select>
         </label>
         <label class="wide" data-target-wrapper>Target
@@ -965,7 +964,6 @@ function upsi_section_admin_tee_times_scripts(): void
           <select name="targetType" data-slot-type required>
             <option value="both" ${selectedType === 'both' ? 'selected' : ''}>Driving Range & Trainer</option>
             <option value="driving" ${selectedType === 'driving' ? 'selected' : ''}>Driving Range Only</option>
-            <option value="trainer" ${selectedType === 'trainer' ? 'selected' : ''}>Trainer Only</option>
           </select>
         </label>
         <label class="wide" data-target-wrapper>Target
@@ -1253,7 +1251,6 @@ function upsi_section_admin_tee_times_scripts(): void
           <select name="targetType" data-slot-type required>
             <option value="both" ${selectedType === 'both' ? 'selected' : ''}>Driving Range & Trainer</option>
             <option value="driving" ${selectedType === 'driving' ? 'selected' : ''}>Driving Range Only</option>
-            <option value="trainer" ${selectedType === 'trainer' ? 'selected' : ''}>Trainer Only</option>
           </select>
         </label>
         <label class="wide" data-target-wrapper>Target
