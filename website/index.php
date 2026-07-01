@@ -37,6 +37,11 @@ require_once __DIR__ . '/sections/user/user_feedback.php';
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title><?php echo htmlspecialchars($UPSI_PAGE_TITLE ?? 'UPSI Golf Booking System', ENT_QUOTES, 'UTF-8'); ?></title>
   <link rel="icon" href="data:,">
+  <script>
+    // Ensure globals exist early to avoid runtime ReferenceError
+    window.supabaseClient = window.supabaseClient || null;
+    window.SUPABASE_MODE = typeof window.SUPABASE_MODE !== 'undefined' ? window.SUPABASE_MODE : false;
+  </script>
   <?php upsi_section_home_page_styles(); ?>
   <?php upsi_section_about_this_website_styles(); ?>
   <?php upsi_section_features_styles(); ?>
