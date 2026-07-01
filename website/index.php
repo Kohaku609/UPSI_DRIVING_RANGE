@@ -73,6 +73,22 @@ require_once __DIR__ . '/sections/user/user_feedback.php';
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+  <script>
+    (function(){
+      const cfg = window.UPSI_PHP_CONFIG || {};
+      const SUPABASE_URL = cfg.SUPABASE_URL || "";
+      const SUPABASE_ANON_KEY = cfg.SUPABASE_ANON_KEY || "";
+      try {
+        window.supabaseClient = (window.supabase?.createClient && SUPABASE_URL && SUPABASE_ANON_KEY)
+          ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+          : null;
+      } catch (e) {
+        window.supabaseClient = null;
+      }
+      window.SUPABASE_MODE = Boolean(window.supabaseClient);
+    })();
+  </script>
+
   <?php upsi_section_home_page_scripts(); ?>
   <?php upsi_section_about_this_website_scripts(); ?>
   <?php upsi_section_features_scripts(); ?>
