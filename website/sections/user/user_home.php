@@ -164,8 +164,8 @@ body.dark .v66-cal-day { background: rgba(14, 45, 31, .9); color: var(--dark-tex
    V75 Admin editable Login + Inside Website/App Background
    ========================================================= */
 :root {
-  --upsi-login-background-image: url("assets/background-login-default.png");
-  --upsi-app-background-image: url("assets/background-app-default.png");
+  --upsi-login-background-image: url("/assets/background-login-default.png");
+  --upsi-app-background-image: url("/assets/background-app-default.png");
 }
 
 .auth-app-layout {
@@ -376,7 +376,10 @@ function upsi_section_user_home_scripts(): void
         toast('Trainer date failed to save. Run/check V49/V53 SQL policy.');
         return false;
       }
+      console.debug('v53SaveTrainerDate result:', result);
       await v53FetchTrainerDatesFromSupabase();
+      // notify other parts of the app that trainer dates have been updated
+      try { document.dispatchEvent(new CustomEvent('trainerDatesUpdated', { detail: { trainerId: localItem.trainerId, date: localItem.date } })); } catch (e) { /* ignore */ }
       return true;
     }
 
@@ -465,6 +468,9 @@ function upsi_section_user_home_scripts(): void
     overlay.setAttribute('data-v53-calendar-overlay', 'true');
     overlay.innerHTML = `<div class="v78-calendar-panel" data-v53-calendar-wrap>${renderMonth()}</div>`;
     modalCard.appendChild(overlay);
+    // make overlay focusable and move focus to it to ensure pointer events are captured
+    overlay.setAttribute('tabindex', '-1');
+    try { overlay.focus(); } catch (e) { /* ignore */ }
 
     const closeCalendarOnly = () => overlay.remove();
     const bind = () => {
@@ -517,7 +523,10 @@ function upsi_section_user_home_scripts(): void
     updateTrigger();
     select.insertAdjacentElement('afterend', trigger);
     select.addEventListener('change', updateTrigger);
-    trigger.addEventListener('click', () => {
+    // Use pointerdown to improve responsiveness on touch and click devices
+    trigger.addEventListener('pointerdown', (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
       const dates = Array.from(select.options).map((option) => option.value).filter(Boolean);
       v53OpenCalendarPicker({ title: labelText, dates, selected: select.value, onPick: (value) => {
         select.value = value;

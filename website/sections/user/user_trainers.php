@@ -196,7 +196,7 @@ body.dark .v78-calendar-overlay {
   padding: 54px 5.5vw 68px;
   background:
     linear-gradient(90deg, rgba(5, 20, 14, .72) 0%, rgba(7, 39, 21, .52) 42%, rgba(8, 50, 26, .08) 100%),
-    var(--upsi-login-background-image, url("assets/background-login-default.png")) center center / cover no-repeat;
+    var(--upsi-login-background-image, url("/assets/background-login-default.png")) center center / cover no-repeat;
   position: relative;
 }
 .v83-public-hero .v83-hero-copy {

@@ -19,7 +19,7 @@ function upsi_section_admin_dashboard_template(): void
     <div class="app-shell">
       <aside class="sidebar">
         <div class="side-brand">
-          <div class="brand-logo small image-logo"><img class="brand-logo-img" src="assets/upsi-driving-range-logo.png" alt="UPSI Golf logo" /></div>
+          <div class="brand-logo small image-logo"><img class="brand-logo-img" src="/assets/upsi-driving-range-logo.png" alt="UPSI Golf logo" /></div>
           <div>
             <h2>UPSI Golf</h2>
             <p>Booking System</p>

@@ -4,14 +4,14 @@
  * Bahagian: User Payment
  *
  * V108: CSS dan JavaScript runtime dibahagikan ke semua section.
- * Jadi home_page.php tidak lagi memegang semua coding sistem.
- *
+  const V75_LOGIN_DEFAULT = '/assets/background-login-default.png';
+  const V75_APP_DEFAULT = '/assets/background-app-default.png';
  * Runtime chunk: 20/22
  * Fungsi berkaitan untuk presentation: userPayments
  */
 
 
-function upsi_section_user_payment_styles(): void
+  const V83_LOGIN_DEFAULT = '/assets/background-login-default.png';
 {
 ?>
 <style>
@@ -29,8 +29,8 @@ function upsi_section_user_payment_styles(): void
   cursor: pointer;
 }
 .auth-app-layout .v83-auth-public-header {
-  position: absolute;
-  top: 0;
+  return `<header class="v83-public-header"><div class="v83-public-brand"><img src="/assets/upsi-driving-range-logo.png" alt="UPSI Golf logo"><div><strong>UPSI Golf</strong><span>Booking System</span></div></div><nav class="v83-public-nav">${items.map(([key,label]) => `<button type="button" class="${active === key ? 'active' : ''}" data-v83-public-page="${key}">${esc(label)}</button>`).join('')}<button type="button" class="v83-public-login-btn" data-v83-show-login>👤 ${esc(tx('login'))}</button>${v83LanguageToggle()}</nav></header>`;
+  return `<footer class="v83-public-footer"><div><p>© 2026 Universiti Pendidikan Sultan Idris (UPSI) | Web-Based Learning Project</p><em>${esc(tx('footerNote'))}</em></div><div class="v83-footer-upsi"><img src="/assets/upsi-driving-range-logo.png" alt="UPSI"><strong>UPSI</strong></div><div class="v83-footer-cta"><span>${esc(tx('ready'))}</span><button type="button" data-v83-show-login>👤 ${esc(tx('loginNow'))}</button></div></footer>`;
   left: 0;
   right: 0;
   z-index: 3;

@@ -77,7 +77,7 @@ body[data-theme="dark"] .v83-public-hero {
   background:
     linear-gradient(90deg, rgba(0, 0, 0, .88) 0%, rgba(2, 18, 10, .78) 45%, rgba(2, 18, 10, .55) 100%),
     linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.55)),
-    var(--upsi-login-background-image, url("assets/background-login-default.png")) center center / cover no-repeat !important;
+    var(--upsi-login-background-image, url("/assets/background-login-default.png")) center center / cover no-repeat !important;
 }
 
 body[data-theme="dark"] .v83-public-hero .v83-hero-copy {

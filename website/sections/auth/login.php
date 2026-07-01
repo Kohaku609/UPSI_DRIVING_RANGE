@@ -20,7 +20,7 @@ function upsi_section_login_template(): void
       <section class="auth-app-card" aria-label="UPSI Driving Range login">
         <div class="auth-app-logo-wrap">
           <div class="auth-app-logo-tile custom-logo-tile">
-            <img class="auth-app-logo-img" src="assets/upsi-driving-range-logo.png" alt="UPSI Driving Range logo" />
+            <img class="auth-app-logo-img" src="/assets/upsi-driving-range-logo.png" alt="UPSI Driving Range logo" />
           </div>
         </div>
 
