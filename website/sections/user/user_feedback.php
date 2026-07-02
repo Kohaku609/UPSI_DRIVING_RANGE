@@ -143,9 +143,7 @@ function upsi_section_user_feedback_scripts(): void
 
   function v99SlotTypeToDb(type = 'both') {
     if (typeof fromLocalSlotType === 'function') return fromLocalSlotType(type);
-    if (type === 'driving') return 'driving_range';
-    if (type === 'trainer') return 'trainer';
-    return 'both';
+    return 'driving_range';
   }
 
   function v99SlotKey(slot = {}) {
@@ -153,7 +151,7 @@ function upsi_section_user_feedback_scripts(): void
       slot.id || '',
       slot.date || '',
       v99DbTime(slot.time || ''),
-      v99SlotTypeToDb(slot.targetType || 'both'),
+      'driving_range',
       slot.targetId || 'all'
     ].join('|');
   }
@@ -167,7 +165,7 @@ function upsi_section_user_feedback_scripts(): void
     const list = v99DeletedSlotKeys();
     const keys = [
       v99SlotKey(slot),
-      [slot.date || '', v99DbTime(slot.time || ''), v99SlotTypeToDb(slot.targetType || 'both'), slot.targetId || 'all'].join('|')
+      [slot.date || '', v99DbTime(slot.time || ''), 'driving_range', slot.targetId || 'all'].join('|')
     ].filter(Boolean);
     keys.forEach((key) => {
       if (!list.includes(key)) list.push(key);
@@ -178,7 +176,7 @@ function upsi_section_user_feedback_scripts(): void
   function v99IsDeletedSlot(slot = {}) {
     const list = v99DeletedSlotKeys();
     return list.includes(v99SlotKey(slot)) ||
-      list.includes([slot.date || '', v99DbTime(slot.time || ''), v99SlotTypeToDb(slot.targetType || 'both'), slot.targetId || 'all'].join('|'));
+      list.includes([slot.date || '', v99DbTime(slot.time || ''), 'driving_range', slot.targetId || 'all'].join('|'));
   }
 
   // 1) QR fix: if Supabase setting exists but value is empty, do NOT fallback to old local QR.
@@ -286,13 +284,8 @@ function upsi_section_user_feedback_scripts(): void
       .delete()
       .eq('slot_date', slot.date)
       .eq('slot_time', v99DbTime(slot.time))
-      .eq('slot_type', v99SlotTypeToDb(slot.targetType || 'both'));
-
-    if ((slot.targetType || 'both') === 'trainer' && v99IsUuid(slot.targetId)) {
-      query = query.eq('trainer_id', slot.targetId);
-    } else {
-      query = query.is('trainer_id', null);
-    }
+      .eq('slot_type', 'driving_range')
+      .is('trainer_id', null);
 
     result = await query.select('id');
     if (result.error) {
@@ -328,6 +321,8 @@ function upsi_section_user_feedback_scripts(): void
 
     const sortMode = state.teeSortMode || 'date_asc';
     const allSlots = (typeof getScheduleSlots === 'function' ? getScheduleSlots() : [])
+      .filter((slot) => !String(`${slot.targetType || ''} ${slot.slot_type || ''}`).toLowerCase().includes('trainer'))
+      .map((slot) => ({ ...slot, targetType: 'driving' }))
       .filter((slot) => !v99IsDeletedSlot(slot))
       .sort((a, b) => v99CompareSlots(a, b, sortMode));
 
@@ -340,8 +335,8 @@ function upsi_section_user_feedback_scripts(): void
       <div class="toolbar">
         <div>
           <p class="eyebrow">Schedule Settings</p>
-          <h2>Manage date and tee time for Driving Range and Trainers</h2>
-          <p class="muted">All date and time options used by user bookings are controlled here.</p>
+          <h2>Driving Range date and tee time</h2>
+          <p class="muted">Tee Time is for Driving Range only. Trainer dates are managed in the Trainers page.</p>
         </div>
         <div class="row-actions">
           <button class="btn ${sortMode === 'date_asc' ? 'btn-primary' : 'btn-soft'}" type="button" data-tee-sort="date_asc">Date/Time Ascending</button>
@@ -352,8 +347,8 @@ function upsi_section_user_feedback_scripts(): void
       <div class="schedule-admin-grid">
         <article class="card schedule-help-card">
           <p class="eyebrow">How it works</p>
-          <h3>Date + Time + Booking Type</h3>
-          <p>Choose whether the slot is for Driving Range, Trainer, or both. User booking forms will only show available dates and times created here.</p>
+          <h3>Date + Time + Driving Range</h3>
+          <p>Add single or bulk date/time slots for driving range booking. Trainer availability is date-only and managed under Trainers.</p>
         </article>
         <article class="card schedule-help-card">
           <p class="eyebrow">Current Coverage</p>
@@ -375,7 +370,7 @@ function upsi_section_user_feedback_scripts(): void
               <tr>
                 <td><strong>${typeof formatDateDisplay === 'function' ? formatDateDisplay(slot.date) : v99Esc(slot.date)}</strong><br><span class="muted">${v99Esc(slot.date)}</span></td>
                 <td><strong>${v99Esc(slot.time)}</strong></td>
-                <td>${v99Esc(typeof scheduleTypeLabel === 'function' ? scheduleTypeLabel(slot.targetType) : slot.targetType)}</td>
+                <td>Driving Range</td>
                 <td>${v99Esc(typeof scheduleTargetLabel === 'function' ? scheduleTargetLabel(slot) : (slot.targetId || 'All'))}</td>
                 <td>${typeof statusPill === 'function' ? statusPill(typeof slotDisplayStatus === 'function' ? slotDisplayStatus(slot) : (slot.status || 'Available')) : v99Esc(slot.status || 'Available')}</td>
                 <td><div class="row-actions">
@@ -724,17 +719,20 @@ function upsi_section_user_feedback_scripts(): void
 
   function slotTypeDb(type = 'both') {
     if (typeof fromLocalSlotType === 'function') return fromLocalSlotType(type);
-    if (type === 'driving') return 'driving_range';
-    if (type === 'trainer') return 'trainer';
-    return 'both';
+    return 'driving_range';
+  }
+
+  function isTrainerTeeSlot(slot = {}) {
+    const text = `${slot.targetType || ''} ${slot.slot_type || ''} ${slot.bookingType || ''}`.toLowerCase();
+    return text.includes('trainer');
   }
 
   function duplicateKey(slot = {}) {
     return [
       String(slot.date || '').trim(),
       dbTime(slot.time || '').trim(),
-      slotTypeDb(slot.targetType || 'both'),
-      (slot.targetType || 'both') === 'trainer' ? String(slot.targetId || 'all') : String(slot.targetId || 'all')
+      'driving_range',
+      String(slot.targetId || 'all')
     ].join('|').toLowerCase();
   }
 
@@ -766,6 +764,8 @@ function upsi_section_user_feedback_scripts(): void
     getScheduleSlots = function getScheduleSlotsV100() {
       const seen = new Set();
       return baseGetSlots()
+        .filter((slot) => !isTrainerTeeSlot(slot))
+        .map((slot) => ({ ...slot, targetType: 'driving' }))
         .filter((slot) => !isDeletedById(slot))
         .filter((slot) => {
           const key = duplicateKey(slot);
@@ -790,7 +790,7 @@ function upsi_section_user_feedback_scripts(): void
       slot.date,
       typeof formatDateDisplay === 'function' ? formatDateDisplay(slot.date) : '',
       slot.time,
-      typeof scheduleTypeLabel === 'function' ? scheduleTypeLabel(slot.targetType) : slot.targetType,
+      'Driving Range',
       typeof scheduleTargetLabel === 'function' ? scheduleTargetLabel(slot) : slot.targetId,
       slot.status,
       typeof slotDisplayStatus === 'function' ? slotDisplayStatus(slot) : '',
@@ -814,13 +814,8 @@ function upsi_section_user_feedback_scripts(): void
       .delete()
       .eq('slot_date', slot.date)
       .eq('slot_time', dbTime(slot.time))
-      .eq('slot_type', slotTypeDb(slot.targetType || 'both'));
-
-    if ((slot.targetType || 'both') === 'trainer' && uuid(slot.targetId)) {
-      query = query.eq('trainer_id', slot.targetId);
-    } else {
-      query = query.is('trainer_id', null);
-    }
+      .eq('slot_type', 'driving_range')
+      .is('trainer_id', null);
 
     result = await query.select('id');
     if (result.error) {
@@ -878,10 +873,12 @@ function upsi_section_user_feedback_scripts(): void
       : {
           slot_date: slot.date,
           slot_time: dbTime(slot.time),
-          slot_type: slotTypeDb(slot.targetType || 'both'),
-          trainer_id: (slot.targetType || 'both') === 'trainer' && uuid(slot.targetId) ? slot.targetId : null,
+          slot_type: 'driving_range',
+          trainer_id: null,
           status: String(slot.status || 'Available') === 'Available' ? 'available' : 'inactive',
         };
+    payload.slot_type = 'driving_range';
+    payload.trainer_id = null;
 
     if (!uuid(payload.id)) delete payload.id;
 
@@ -922,6 +919,8 @@ function upsi_section_user_feedback_scripts(): void
     const sortMode = state.teeSortMode || 'date_asc';
     const searchTerm = state.teeSearch || '';
     const allSlots = (typeof getScheduleSlots === 'function' ? getScheduleSlots() : [])
+      .filter((slot) => !isTrainerTeeSlot(slot))
+      .map((slot) => ({ ...slot, targetType: 'driving' }))
       .filter((slot) => slotMatchesSearch(slot, searchTerm))
       .sort((a, b) => sortSlots(a, b, sortMode));
 
@@ -934,8 +933,8 @@ function upsi_section_user_feedback_scripts(): void
       <div class="toolbar tee-toolbar">
         <div>
           <p class="eyebrow">Schedule Settings</p>
-          <h2>Manage date and tee time for Driving Range and Trainers</h2>
-          <p class="muted">All date and time options used by user bookings are controlled here.</p>
+          <h2>Driving Range date and tee time</h2>
+          <p class="muted">Tee Time is for Driving Range only. Trainer dates are managed in the Trainers page.</p>
         </div>
         <div class="row-actions tee-actions">
           <label class="search-box tee-search-box">
@@ -951,8 +950,8 @@ function upsi_section_user_feedback_scripts(): void
       <div class="schedule-admin-grid">
         <article class="card schedule-help-card">
           <p class="eyebrow">How it works</p>
-          <h3>Date + Time + Booking Type</h3>
-          <p>Choose whether the slot is for Driving Range, Trainer, or both. User booking forms will only show available dates and times created here.</p>
+          <h3>Date + Time + Driving Range</h3>
+          <p>Add single or bulk date/time slots for driving range booking. Trainer availability is date-only and managed under Trainers.</p>
         </article>
         <article class="card schedule-help-card">
           <p class="eyebrow">Current Coverage</p>
@@ -975,7 +974,7 @@ function upsi_section_user_feedback_scripts(): void
               <tr>
                 <td><strong>${typeof formatDateDisplay === 'function' ? formatDateDisplay(slot.date) : esc(slot.date)}</strong><br><span class="muted">${esc(slot.date)}</span></td>
                 <td><strong>${esc(slot.time)}</strong></td>
-                <td>${esc(typeof scheduleTypeLabel === 'function' ? scheduleTypeLabel(slot.targetType) : slot.targetType)}</td>
+                <td>Driving Range</td>
                 <td>${esc(typeof scheduleTargetLabel === 'function' ? scheduleTargetLabel(slot) : (slot.targetId || 'All'))}</td>
                 <td>${typeof statusPill === 'function' ? statusPill(typeof slotDisplayStatus === 'function' ? slotDisplayStatus(slot) : (slot.status || 'Available')) : esc(slot.status || 'Available')}</td>
                 <td><div class="row-actions">
@@ -1078,10 +1077,8 @@ function upsi_section_user_feedback_scripts(): void
   // Override openTimeForm only for submit behavior by replacing complete function.
   openTimeForm = function openTimeFormV100(slot = null) {
     const courses = typeof getDrivingCourses === 'function' ? getDrivingCourses(read('courses')) : read('courses');
-    const trainers = typeof read === 'function' ? read('trainers') : [];
     const today = new Date().toISOString().slice(0, 10);
     const nextWeek = typeof getFutureDate === 'function' ? getFutureDate(7) : today;
-    const selectedType = slot?.targetType || 'both';
     const selectedTarget = slot?.targetId || 'all';
     const timeParts = typeof parseTimeSlot === 'function' ? parseTimeSlot(slot?.time || '8:00 AM') : { hour: 8, minute: 0, period: 'AM' };
     const isEdit = Boolean(slot);
@@ -1090,8 +1087,8 @@ function upsi_section_user_feedback_scripts(): void
       <div class="modal-head">
         <div>
           <p class="eyebrow">${isEdit ? 'Edit Tee Time' : 'New Tee Time'}</p>
-          <h2>${isEdit ? 'Update Available Date & Time' : 'Add Time Slot'}</h2>
-          <p class="muted">Duplicate slots with the same date, time, type and target will be skipped automatically.</p>
+          <h2>${isEdit ? 'Update Driving Range Time Slot' : 'Add Driving Range Time Slot'}</h2>
+          <p class="muted">Duplicate driving range slots with the same date, time and target will be skipped automatically.</p>
         </div>
         <button class="close-btn" data-close-modal>&times;</button>
       </div>
@@ -1117,14 +1114,7 @@ function upsi_section_user_feedback_scripts(): void
             <input name="endDate" type="date" min="${today}" value="${nextWeek}">
           </label>
         `}
-        <label>Booking Type
-          <select name="targetType" data-slot-type required>
-            <option value="both" ${selectedType === 'both' ? 'selected' : ''}>Driving Range & Trainer</option>
-            <option value="driving" ${selectedType === 'driving' ? 'selected' : ''}>Driving Range Only</option>
-            <option value="trainer" ${selectedType === 'trainer' ? 'selected' : ''}>Trainer Only</option>
-          </select>
-        </label>
-        <label class="wide" data-target-wrapper>Target
+        <label class="wide" data-target-wrapper>Driving Range Target
           <select name="targetId" data-slot-target required></select>
         </label>
         <div class="wide time-builder" data-time-builder>
@@ -1169,15 +1159,10 @@ function upsi_section_user_feedback_scripts(): void
     let currentTime = { ...timeParts };
 
     const renderTargetOptions = () => {
-      const type = form.targetType.value;
-      let options = '<option value="all">All applicable slots</option>';
-      if (type === 'driving') {
-        options = courses.map((course) => `<option value="${esc(course.id)}" ${selectedTarget === course.id ? 'selected' : ''}>${esc(course.name)}</option>`).join('') || '<option value="all">All Driving Range</option>';
-      } else if (type === 'trainer') {
-        options = trainers.map((trainer) => `<option value="${esc(trainer.id)}" ${selectedTarget === trainer.id ? 'selected' : ''}>${esc(trainer.name)}</option>`).join('') || '<option value="all">All Trainers</option>';
-      }
+      const options = courses.map((course) => `<option value="${esc(course.id)}" ${selectedTarget === course.id ? 'selected' : ''}>${esc(course.name)}</option>`).join('') || '<option value="all">All Driving Ranges</option>';
       form.targetId.innerHTML = options;
-      if (type === 'both') form.targetId.value = 'all';
+      if ([...form.targetId.options].some((opt) => opt.value === selectedTarget)) form.targetId.value = selectedTarget;
+      else form.targetId.value = 'all';
     };
 
     const renderTime = () => {
@@ -1200,7 +1185,6 @@ function upsi_section_user_feedback_scripts(): void
       form.endDate.required = isRange;
     };
 
-    form.targetType.addEventListener('change', renderTargetOptions);
     if (form.dateMode) form.dateMode.addEventListener('change', renderDateMode);
     form.querySelectorAll('[data-time-adjust]').forEach((button) => {
       button.addEventListener('click', () => {
@@ -1225,8 +1209,8 @@ function upsi_section_user_feedback_scripts(): void
         const formData = new FormData(event.currentTarget);
         const basePayload = {
           time: formData.get('time'),
-          targetType: formData.get('targetType'),
-          targetId: formData.get('targetType') === 'both' ? 'all' : formData.get('targetId'),
+          targetType: 'driving',
+          targetId: formData.get('targetId') || 'all',
           status: formData.get('status'),
         };
 

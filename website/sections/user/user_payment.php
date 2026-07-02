@@ -990,7 +990,7 @@ function upsi_section_user_payment_scripts(): void
   }
 
   function v83Footer() {
-    return `<footer class="v83-public-footer"><div><p>© 2026 Universiti Pendidikan Sultan Idris (UPSI) | Web-Based Learning Project</p><em>${esc(tx('footerNote'))}</em></div><div class="v83-footer-upsi"><img src="/assets/upsi-driving-range-logo.png" alt="UPSI"><strong>UPSI</strong></div><div class="v83-footer-cta"><span>${esc(tx('ready'))}</span><button type="button" data-v83-show-login>→ ${esc(tx('loginNow'))}</button></div></footer>`;
+    return `<footer class="v83-public-footer"><div><p>-powered by WBL DTD3053 AT20 META UPSI ❤️-</p></div><div class="v83-footer-upsi"><img src="/assets/upsi-driving-range-logo.png" alt="UPSI"><strong>UPSI</strong></div><div class="v83-footer-cta"><span>${esc(tx('ready'))}</span><button type="button" data-v83-show-login>→ ${esc(tx('loginNow'))}</button></div></footer>`;
   }
 
   function v83TeamSection() {
