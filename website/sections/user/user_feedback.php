@@ -2114,6 +2114,9 @@ window.UPSI_SECTION_MODULES["user_feedback"] = {
 
   DB_TABLES.reviews = 'feedback_review';
 
+  const FEEDBACK_OPTIONS_V109 = ['All Feedback', 'General Feedback', 'Suggestion', 'Issue / Problem', 'Complaint', 'Compliment'];
+  let adminFeedbackCategoryFilterV109 = 'All Feedback';
+
   function escV109(value = '') {
     return typeof escapeHtml === 'function'
       ? escapeHtml(value)
@@ -2137,6 +2140,10 @@ window.UPSI_SECTION_MODULES["user_feedback"] = {
 
   function localTempIdV109() {
     return `TEMP-FB-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
+
+  function feedbackCategoryV109(review = {}) {
+    return String(review.category || review.feedbackCategory || review.feedback_category || 'General Feedback').trim() || 'General Feedback';
   }
 
   function normaliseFeedbackV109(row = {}) {
@@ -2477,8 +2484,15 @@ window.UPSI_SECTION_MODULES["user_feedback"] = {
   adminReviews = function adminReviewsV109() {
     setTitle('Customer Feedback', 'Administrator Panel');
 
-    const reviews = (read('reviews') || [])
+    const allReviews = (read('reviews') || [])
       .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    const categories = Array.from(new Set([
+      ...FEEDBACK_OPTIONS_V109,
+      ...allReviews.map(feedbackCategoryV109),
+    ])).filter(Boolean);
+    const reviews = adminFeedbackCategoryFilterV109 === 'All Feedback'
+      ? allReviews
+      : allReviews.filter((review) => feedbackCategoryV109(review) === adminFeedbackCategoryFilterV109);
 
     content().innerHTML = `
       <div class="toolbar">
@@ -2487,10 +2501,22 @@ window.UPSI_SECTION_MODULES["user_feedback"] = {
           <h2>Review customer feedback</h2>
           <p class="muted">Admin can delete toxic or inappropriate feedback. Delete will also remove it from Supabase.</p>
         </div>
-        <button class="btn btn-soft" type="button" data-refresh-feedback>Refresh Feedback</button>
+        <div class="row-actions">
+          <label class="v64-feedback-filter-label">Feedback Type
+            <select data-v109-feedback-filter>
+              ${categories.map((category) => `<option value="${escV109(category)}" ${category === adminFeedbackCategoryFilterV109 ? 'selected' : ''}>${escV109(category)}</option>`).join('')}
+            </select>
+          </label>
+          <button class="btn btn-soft" type="button" data-refresh-feedback>Refresh Feedback</button>
+        </div>
       </div>
       <div class="card-grid">${reviews.map(adminReviewCardV109).join('') || empty('No feedback yet.')}</div>
     `;
+
+    content().querySelector('[data-v109-feedback-filter]')?.addEventListener('change', (event) => {
+      adminFeedbackCategoryFilterV109 = event.target.value || 'All Feedback';
+      adminReviews();
+    });
 
     content().querySelector('[data-refresh-feedback]')?.addEventListener('click', async () => {
       await loadFeedbackFromSupabaseV109({ mergeLocal: true });
