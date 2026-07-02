@@ -1146,8 +1146,8 @@ function openAdminAccountForm(admin = null) {
     const formData = new FormData(form);
     const users = read('users');
     const email = admin ? admin.email.toLowerCase() : formData.get('email').trim().toLowerCase();
-    const duplicate = users.some((user) => user.email.toLowerCase() === email && user.id !== admin?.id);
-    if (duplicate && !admin) return toast('This email is already registered. Please use another email.');
+    const existingUserForEmail = users.find((user) => user.email.toLowerCase() === email && user.id !== admin?.id);
+    if (existingUserForEmail && !admin && existingUserForEmail.role === 'admin') return toast('This email is already registered as an admin.');
 
     const passwordValue = formData.get('password') || '';
     const nextStatus = formData.get('status');
@@ -1200,6 +1200,22 @@ function openAdminAccountForm(admin = null) {
       }
 
       if (!admin || !isUuid(admin.id)) {
+        if (existingUserForEmail && existingUserForEmail.role === 'user') {
+          const promoted = await promoteSupabaseProfileToAdmin({
+            ...existingUserForEmail,
+            ...payload,
+            id: existingUserForEmail.id,
+            userId: existingUserForEmail.userId,
+          });
+          if (promoted.error) {
+            toast(promoted.error.message || 'Failed to promote existing user profile to admin.');
+            return;
+          }
+          const promotedUser = promoted.data ? profileToUser(promoted.data) : { ...existingUserForEmail, ...payload };
+          await finishSave({ ...promotedUser, role: 'admin', supabaseRole: 'admin' }, 'Existing user promoted to additional admin.');
+          return;
+        }
+
         if (!passwordValue || passwordValue.length < 6) {
           toast('Password must be at least 6 characters to create a login account.');
           return;
@@ -1225,7 +1241,16 @@ function openAdminAccountForm(admin = null) {
           return;
         }
 
-        const newUser = result.profile ? profileToUser(result.profile) : payload;
+        const promoted = await promoteSupabaseProfileToAdmin({
+          ...payload,
+          userId: result.profile?.user_id || result.data?.user?.id || payload.userId,
+        });
+        if (promoted.error) {
+          toast(promoted.error.message || 'Admin account was created, but failed to set profile role as admin.');
+          return;
+        }
+
+        const newUser = promoted.data ? profileToUser(promoted.data) : (result.profile ? profileToUser(result.profile) : payload);
         await finishSave({ ...payload, ...newUser, role: 'admin', supabaseRole: 'admin' }, 'Additional admin account registered in Supabase.');
         return;
       }
@@ -1295,6 +1320,35 @@ function openAdminAccountForm(admin = null) {
       });
     });
   }
+}
+
+async function promoteSupabaseProfileToAdmin(user = {}) {
+  if (!SUPABASE_MODE) return { data: null, error: null };
+  const email = String(user.email || '').trim().toLowerCase();
+  const payload = {
+    full_name: user.fullName || email,
+    phone: user.phone || null,
+    address: user.address || null,
+    role: 'admin',
+    status: accountStatusToDb(user.status || 'Active'),
+  };
+
+  let lastResult = { data: null, error: null };
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    if (attempt) await new Promise((resolve) => setTimeout(resolve, 500));
+    let query = supabaseClient.from(DB_TABLES.profiles).update(payload);
+    if (user.userId && isUuid(user.userId)) query = query.eq('user_id', user.userId);
+    else query = query.eq('email', email);
+
+    lastResult = await query.select('*').maybeSingle();
+    if (lastResult.error) continue;
+    if (lastResult.data?.role === 'admin') return lastResult;
+  }
+
+  if (!lastResult.error && lastResult.data?.role !== 'admin') {
+    lastResult.error = new Error('Profile was created, but Supabase kept the role as user. Please check profiles RLS update policy.');
+  }
+  return lastResult;
 }
 
 function bindAccountForm(includeSystemSettings = false, sourcePage = 'settings') {

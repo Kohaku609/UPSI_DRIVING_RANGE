@@ -647,6 +647,8 @@ openAdminAccountForm = function v26OpenAdminAccountForm(admin = null) {
     event.preventDefault();
     const formData = new FormData(form);
     const email = admin ? admin.email.toLowerCase() : formData.get('email').trim().toLowerCase();
+    const existingUserForEmail = read('users').find((user) => user.email?.toLowerCase() === email && user.id !== admin?.id);
+    if (existingUserForEmail && !admin && existingUserForEmail.role === 'admin') return toast('This email is already registered as an admin.');
     const passwordValue = formData.get('password') || '';
     const nextStatus = formData.get('status');
     const inactiveReasonInput = String(formData.get('inactiveReason') || '').trim();
@@ -670,6 +672,30 @@ openAdminAccountForm = function v26OpenAdminAccountForm(admin = null) {
     };
     const saveAdmin = async () => {
       if (!admin || !isUuid(admin.id)) {
+        if (existingUserForEmail && existingUserForEmail.role === 'user') {
+          const promoted = typeof promoteSupabaseProfileToAdmin === 'function'
+            ? await promoteSupabaseProfileToAdmin({
+                ...existingUserForEmail,
+                ...payload,
+                id: existingUserForEmail.id,
+                userId: existingUserForEmail.userId,
+              })
+            : await updateSupabaseProfileByEmail(email, {
+                full_name: payload.fullName,
+                phone: payload.phone || null,
+                address: payload.address || null,
+                role: 'admin',
+                status: accountStatusToDb(payload.status),
+              });
+          if (promoted.error) return toast(promoted.error.message || 'Failed to promote existing user profile to admin.');
+          const promotedUser = promoted.data ? profileToUser(promoted.data) : { ...existingUserForEmail, ...payload };
+          upsertAdminLocal({ ...promotedUser, role: 'admin', supabaseRole: 'admin' });
+          await loadSupabaseDataToLocal({ requireAuth: true });
+          closeModal();
+          adminSettings();
+          return toast('Existing user promoted to additional admin.');
+        }
+
         if (!passwordValue || passwordValue.length < 6) return toast('Password must be at least 6 characters to create a login account.');
         const { data: currentSessionData } = await supabaseClient.auth.getSession();
         const result = await createSupabaseAuthAccount({
@@ -682,8 +708,16 @@ openAdminAccountForm = function v26OpenAdminAccountForm(admin = null) {
           address: payload.address,
         }, { restoreSession: currentSessionData?.session });
         if (result.error) return toast(result.error.message || 'Failed to create admin login in Supabase.');
-        const newUser = result.profile ? profileToUser(result.profile) : payload;
-        upsertAdminLocal(newUser);
+        const promoted = typeof promoteSupabaseProfileToAdmin === 'function'
+          ? await promoteSupabaseProfileToAdmin({
+              ...payload,
+              userId: result.profile?.user_id || result.data?.user?.id || payload.userId,
+            })
+          : { data: result.profile, error: null };
+        if (promoted.error) return toast(promoted.error.message || 'Admin account was created, but failed to set profile role as admin.');
+        const newUser = promoted.data ? profileToUser(promoted.data) : (result.profile ? profileToUser(result.profile) : payload);
+        upsertAdminLocal({ ...newUser, role: 'admin', supabaseRole: 'admin' });
+        await loadSupabaseDataToLocal({ requireAuth: true });
         closeModal();
         adminSettings();
         return toast(result.emailConfirmationSent
