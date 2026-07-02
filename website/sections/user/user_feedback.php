@@ -106,6 +106,122 @@ body[data-theme="dark"] .qr-empty-state {
     overflow-x: hidden;
   }
 
+  body {
+    min-height: 100vh !important;
+  }
+
+  .auth-app-layout {
+    min-height: 100vh !important;
+    padding: 0 !important;
+  }
+
+  .auth-app-layout:has(.v83-auth-public-header) {
+    padding-top: 0 !important;
+  }
+
+  .auth-layout,
+  .enhanced-auth-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: auto !important;
+    width: 100% !important;
+    gap: 14px !important;
+    padding: 12px !important;
+  }
+
+  .hero-panel {
+    width: 100% !important;
+    min-height: auto !important;
+    border-radius: 22px !important;
+    padding: 18px !important;
+    overflow: hidden !important;
+  }
+
+  .hero-panel::after {
+    display: none !important;
+  }
+
+  .brand-row,
+  .side-brand {
+    align-items: center !important;
+    gap: 10px !important;
+  }
+
+  .brand-logo {
+    width: 54px !important;
+    height: 54px !important;
+    border-radius: 16px !important;
+    font-size: 28px !important;
+  }
+
+  .hero-content {
+    margin-top: 28px !important;
+    padding-bottom: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .hero-content h2 {
+    font-size: 34px !important;
+    line-height: 1.04 !important;
+    letter-spacing: 0 !important;
+    margin: 12px 0 !important;
+  }
+
+  .hero-content p {
+    font-size: 15px !important;
+    line-height: 1.5 !important;
+  }
+
+  .hero-stats {
+    position: static !important;
+    grid-template-columns: 1fr !important;
+    margin-top: 18px !important;
+  }
+
+  .auth-card,
+  .auth-card-modern {
+    width: 100% !important;
+    max-width: 100% !important;
+    justify-self: stretch !important;
+    align-self: stretch !important;
+    border-radius: 22px !important;
+    padding: 18px !important;
+  }
+
+  .auth-tabs {
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+  }
+
+  .auth-tab {
+    min-height: 48px !important;
+  }
+
+  .form-stack,
+  .auth-form,
+  .login-form {
+    width: 100% !important;
+  }
+
+  label {
+    min-width: 0 !important;
+  }
+
+  input,
+  select,
+  textarea {
+    min-width: 0 !important;
+    min-height: 48px !important;
+    font-size: 16px !important;
+  }
+
+  .full,
+  .form-stack .btn,
+  .auth-card .btn,
+  .auth-card-modern .btn {
+    width: 100% !important;
+  }
+
   .app-shell {
     grid-template-columns: 1fr !important;
   }
@@ -305,6 +421,32 @@ body[data-theme="dark"] .qr-empty-state {
     text-align: center !important;
     align-items: center !important;
     padding: 16px !important;
+    gap: 12px !important;
+  }
+
+  .auth-app-layout .v83-auth-public-header {
+    position: static !important;
+  }
+
+  .auth-app-layout .v83-auth-public-header .v83-public-header {
+    height: auto !important;
+    padding: 14px !important;
+  }
+
+  .v83-public-brand {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .v83-public-brand img,
+  .auth-app-layout .v83-auth-public-header .v83-public-brand img {
+    width: 46px !important;
+    height: 46px !important;
+  }
+
+  .v83-public-brand strong,
+  .auth-app-layout .v83-auth-public-header .v83-public-brand strong {
+    font-size: 22px !important;
   }
 
   .v83-public-nav,
@@ -313,6 +455,44 @@ body[data-theme="dark"] .qr-empty-state {
     width: 100% !important;
     justify-content: center !important;
     flex-wrap: wrap !important;
+  }
+
+  .v83-public-nav button,
+  .v83-public-login-btn,
+  .v83-language-toggle button {
+    flex: 1 1 calc(50% - 8px) !important;
+    min-width: 120px !important;
+    min-height: 44px !important;
+    white-space: normal !important;
+  }
+
+  .v83-language-toggle {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .v83-public-hero {
+    min-height: auto !important;
+    padding: 86px 16px 32px !important;
+  }
+
+  .v83-hero-copy {
+    max-width: 100% !important;
+  }
+
+  .v83-hero-copy h1 {
+    font-size: 34px !important;
+    line-height: 1.08 !important;
+  }
+
+  .v83-hero-copy h2 {
+    font-size: 24px !important;
+    line-height: 1.15 !important;
+  }
+
+  .v83-hero-copy p {
+    font-size: 15px !important;
+    line-height: 1.55 !important;
   }
 }
 
@@ -332,6 +512,17 @@ body[data-theme="dark"] .qr-empty-state {
   select,
   textarea {
     max-width: 100% !important;
+  }
+
+  .hero-content h2,
+  .v83-hero-copy h1 {
+    font-size: 30px !important;
+  }
+
+  .v83-public-nav button,
+  .v83-public-login-btn,
+  .v83-language-toggle button {
+    flex-basis: 100% !important;
   }
 }
 
