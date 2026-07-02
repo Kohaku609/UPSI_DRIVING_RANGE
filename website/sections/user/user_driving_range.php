@@ -272,7 +272,7 @@ function upsi_section_user_driving_range_scripts(): void
 
     if (mode === 'payment') {
       const uploadLabel = v54HasReceipt(booking) ? 'Replace Receipt' : 'Upload Receipt';
-      const upload = isVerified ? '' : `<button class="btn btn-primary" type="button" data-upload-receipt="${v54Esc(booking.id)}">${uploadLabel}</button>`;
+      const upload = isVerified && v54HasReceipt(booking) ? '' : `<button class="btn btn-primary" type="button" data-upload-receipt="${v54Esc(booking.id)}">${uploadLabel}</button>`;
       return [viewBooking, viewReceipt, upload].filter(Boolean).join('');
     }
 

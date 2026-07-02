@@ -1326,6 +1326,34 @@ function openReceiptModal(id) {
       receiptImage,
       paymentStatus: 'Pending Verification',
     });
+    if (SUPABASE_MODE && supabaseClient && isUuid(id)) {
+      const userId = isUuid(booking.userId) ? booking.userId : await getCurrentProfileId();
+      const { error: paymentError } = await supabaseClient
+        .from(DB_TABLES.payments)
+        .upsert({
+          booking_id: id,
+          user_id: userId,
+          amount: Number(booking.amount || 0),
+          payment_status: 'pending',
+          payment_note: note || null,
+          receipt_image_url: receiptImage || null,
+        }, { onConflict: 'booking_id' });
+      if (paymentError) {
+        console.error('Receipt payment upsert error:', paymentError);
+        toast(paymentError.message || 'Receipt saved locally, but failed to sync to Supabase payments.');
+        return;
+      }
+      const { error: bookingError } = await supabaseClient
+        .from(DB_TABLES.bookings)
+        .update({
+          payment_status: 'pending',
+          payment_reference: note || null,
+          payment_method: booking.paymentMethod || 'QR Payment',
+        })
+        .eq('id', id);
+      if (bookingError) console.warn('Receipt booking payment fields sync skipped:', bookingError.message || bookingError);
+      await loadSupabaseDataToLocal({ requireAuth: true });
+    }
     closeModal();
     userPayments();
     toast('Receipt submitted successfully. Waiting for admin verification.');
