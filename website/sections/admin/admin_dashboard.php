@@ -406,7 +406,7 @@ async function createPersonalNotification({ recipient, title, message, imageUrl 
   const items = read('notifications');
   items.unshift(payload);
   setLocalData('notifications', items);
-  if (SUPABASE_MODE && isUuid(recipient.id)) {
+  if (personalNotificationsSupabaseEnabled() && isUuid(recipient.id)) {
     const { data, error } = await supabaseClient
       .from(DB_TABLES.notifications)
       .insert(localNotificationToDb(payload))

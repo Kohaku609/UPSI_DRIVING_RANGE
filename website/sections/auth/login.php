@@ -1262,9 +1262,14 @@ STORAGE.notifications = 'upsiGolfPersonalNotifications';
 STORAGE.events = 'upsiGolfPublicEvents';
 DB_TABLES.notifications = 'personal_notifications';
 DB_TABLES.publicEvents = 'public_events';
+window.UPSI_PERSONAL_NOTIFICATIONS_SUPABASE_ENABLED = false;
 defaultData.notifications = [];
 defaultData.events = [];
 state.eventCarouselIndex = 0;
+
+function personalNotificationsSupabaseEnabled() {
+  return Boolean(window.UPSI_PERSONAL_NOTIFICATIONS_SUPABASE_ENABLED && SUPABASE_MODE && DB_TABLES?.notifications);
+}
 
 function ensureV26LocalStorage() {
   if (!localStorage.getItem(STORAGE.notifications)) localStorage.setItem(STORAGE.notifications, JSON.stringify([]));
@@ -1373,7 +1378,7 @@ loadSupabaseDataToLocal = async function v26LoadSupabaseDataToLocal(options = {}
         .select('id')
         .eq('user_id', authUser.id)
         .maybeSingle();
-      if (profile?.id) {
+      if (profile?.id && personalNotificationsSupabaseEnabled()) {
         const { data: notiRows, error: notiError } = await supabaseClient
           .from(DB_TABLES.notifications)
           .select('*')
@@ -1396,7 +1401,7 @@ syncSupabaseWrite = async function v26SyncSupabaseWrite(key, value) {
 };
 
 async function syncNotificationsToSupabase(items = []) {
-  if (!SUPABASE_MODE) return;
+  if (!personalNotificationsSupabaseEnabled()) return;
   for (const item of items) {
     if (!isUuid(item.recipientId)) continue;
     const payload = localNotificationToDb(item);
@@ -1515,7 +1520,7 @@ async function markNotificationsRead() {
     }
   });
   if (changed) setLocalData('notifications', items);
-  if (SUPABASE_MODE && isUuid(current.id)) {
+  if (personalNotificationsSupabaseEnabled() && isUuid(current.id)) {
     const { error } = await supabaseClient
       .from(DB_TABLES.notifications)
       .update({ is_read: true })

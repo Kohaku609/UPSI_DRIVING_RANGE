@@ -283,7 +283,7 @@ createPersonalNotification = async function v28CreatePersonalNotification(args =
 };
 
 async function refreshNotificationsFromSupabaseV28() {
-  if (!SUPABASE_MODE || !state.session?.id || !isUuid(state.session.id)) return;
+  if (!personalNotificationsSupabaseEnabled() || !state.session?.id || !isUuid(state.session.id)) return;
   try {
     const { data, error } = await supabaseClient
       .from(DB_TABLES.notifications)
@@ -715,7 +715,7 @@ function v29PeerNameFromId(peerId, item = {}) {
 }
 
 async function refreshNotificationsFromSupabaseV29() {
-  if (!SUPABASE_MODE || !state.session?.id || !isUuid(state.session.id)) return;
+  if (!personalNotificationsSupabaseEnabled() || !state.session?.id || !isUuid(state.session.id)) return;
   try {
     const { data, error } = await supabaseClient
       .from(DB_TABLES.notifications)
@@ -744,7 +744,7 @@ createPersonalNotification = async function v29CreatePersonalNotification({ reci
     isRead: false,
     createdAt: new Date().toISOString(),
   };
-  if (SUPABASE_MODE && isUuid(recipient.id) && isUuid(sender.id)) {
+  if (personalNotificationsSupabaseEnabled() && isUuid(recipient.id) && isUuid(sender.id)) {
     const { data, error } = await supabaseClient
       .from(DB_TABLES.notifications)
       .insert(localNotificationToDb(payload))

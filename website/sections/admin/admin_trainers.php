@@ -325,7 +325,7 @@ document.addEventListener('click', (event) => {
 }, true);
 
 async function refreshNotificationsFromSupabaseV30() {
-  if (!SUPABASE_MODE || !state.session?.id || !isUuid(state.session.id)) return;
+  if (!personalNotificationsSupabaseEnabled() || !state.session?.id || !isUuid(state.session.id)) return;
   try {
     // RLS policies decide which rows are visible. This avoids missing sent admin replies.
     const { data, error } = await supabaseClient
@@ -361,7 +361,7 @@ createPersonalNotification = async function v30CreatePersonalNotification({ reci
     isRead: false,
     createdAt: new Date().toISOString(),
   };
-  if (SUPABASE_MODE && isUuid(recipient.id) && isUuid(sender.id)) {
+  if (personalNotificationsSupabaseEnabled() && isUuid(recipient.id) && isUuid(sender.id)) {
     const dbPayload = localNotificationToDb(payload);
     delete dbPayload.id;
     const { data, error } = await supabaseClient

@@ -554,7 +554,7 @@ async function markChatRead(peerId) {
     }
   });
   if (changed) setLocalData('notifications', items);
-  if (SUPABASE_MODE && isUuid(current.id) && isUuid(peerId)) {
+  if (personalNotificationsSupabaseEnabled() && isUuid(current.id) && isUuid(peerId)) {
     await supabaseClient.from(DB_TABLES.notifications).update({ is_read: true }).eq('recipient_id', current.id).eq('sender_id', peerId).eq('is_read', false);
   }
   renderProfileChip();
