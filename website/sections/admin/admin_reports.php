@@ -314,6 +314,28 @@ function upsi_section_admin_reports_scripts(): void
     }
   }
 
+  async function v46SyncBookingPaymentFields(booking = {}) {
+    if (!SUPABASE_MODE || !supabaseClient || !isUuid(booking.id)) return;
+    const paymentStatus = v46PaymentStatusForDb(booking);
+    const bookingPaymentMethod = booking.paymentMethod || booking.payment_method || 'QR Payment';
+    const bookingPatch = {
+      booking_status: localBookingStatusToDb(booking.bookingStatus),
+      payment_status: paymentStatus,
+      payment_method: bookingPaymentMethod,
+      total_amount: Number(booking.amount || 0),
+    };
+    if (booking.receiptNote || booking.paymentReference) bookingPatch.payment_reference = booking.receiptNote || booking.paymentReference || null;
+
+    const { error } = await supabaseClient
+      .from(DB_TABLES.bookings)
+      .update(bookingPatch)
+      .eq('id', booking.id);
+
+    if (error) {
+      console.warn('V46 booking status/payment-field sync skipped:', error?.message || error);
+    }
+  }
+
   const v46BaseSyncBookingsToSupabase = syncBookingsToSupabase;
   syncBookingsToSupabase = async function syncBookingsToSupabaseV46(bookings = []) {
     await v46BaseSyncBookingsToSupabase(bookings);
@@ -324,23 +346,9 @@ function upsi_section_admin_reports_scripts(): void
 
     for (const booking of bookings) {
       if (!booking || !isUuid(booking.id)) continue;
-      const paymentStatus = v46PaymentStatusForDb(booking);
-      const bookingPaymentMethod = booking.paymentMethod || booking.payment_method || 'QR Payment';
 
       // Keep booking table payment columns aligned with payments table.
-      const bookingPatch = {
-        payment_status: paymentStatus,
-        payment_method: bookingPaymentMethod,
-        total_amount: Number(booking.amount || 0),
-      };
-      if (booking.receiptNote || booking.paymentReference) bookingPatch.payment_reference = booking.receiptNote || booking.paymentReference || null;
-      const { error: bookingPaymentError } = await supabaseClient
-        .from(DB_TABLES.bookings)
-        .update(bookingPatch)
-        .eq('id', booking.id);
-      if (bookingPaymentError) {
-        console.warn('V46 booking payment-field sync skipped:', bookingPaymentError?.message || bookingPaymentError);
-      }
+      await v46SyncBookingPaymentFields(booking);
 
       await v46SyncPaymentForBooking(booking);
     }
@@ -348,9 +356,23 @@ function upsi_section_admin_reports_scripts(): void
 
   const v46BaseUpdateBooking = updateBooking;
   updateBooking = function updateBookingV46(id, patch, rerender = false) {
+    const beforeUpdate = read('bookings').find((booking) => String(booking.id) === String(id));
+    if (
+      beforeUpdate &&
+      patch &&
+      String(patch.bookingStatus || '').toLowerCase() === 'confirmed' &&
+      !('paymentStatus' in patch) &&
+      String(beforeUpdate.paymentMethod || '').toLowerCase().includes('qr') &&
+      !/verified|reject/.test(String(beforeUpdate.paymentStatus || '').toLowerCase())
+    ) {
+      patch = { ...patch, paymentStatus: 'Pending Verification' };
+    }
     v46BaseUpdateBooking(id, patch, rerender);
     const updatedBooking = read('bookings').find((booking) => String(booking.id) === String(id));
     if (updatedBooking && SUPABASE_MODE && supabaseClient) {
+      v46SyncBookingPaymentFields(updatedBooking).catch((error) => {
+        console.error('V46 booking status/payment update error:', error);
+      });
       v46SyncPaymentForBooking(updatedBooking).catch((error) => {
         console.error('V46 payment update error:', error);
       });

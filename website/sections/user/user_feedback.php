@@ -74,12 +74,14 @@ body[data-theme="dark"] .qr-empty-state {
 }
 
 .feedback-category-card .status-pill {
-  flex: 0 1 auto;
-  max-width: 100%;
+  flex: 0 0 auto;
+  max-width: 128px;
   white-space: normal !important;
   overflow-wrap: anywhere;
   text-align: center;
   line-height: 1.15;
+  margin-left: auto;
+  padding-inline: 14px;
 }
 
 
