@@ -995,6 +995,34 @@ function getSessionUser() {
   return read('users').find((u) => u.id === session.userId) || null;
 }
 
+async function promoteVerifiedAdminSession() {
+  if (!SUPABASE_MODE) return null;
+  const { data: sessionData } = await supabaseClient.auth.getSession();
+  const authUser = sessionData?.session?.user;
+  const metadata = authUser?.user_metadata || {};
+  const metadataRole = String(metadata.role || metadata.requested_role || '').toLowerCase();
+  if (!authUser || !['admin', 'main_admin'].includes(metadataRole)) return null;
+
+  const payload = {
+    role: 'admin',
+    status: 'active',
+    full_name: metadata.full_name || authUser.email || 'Administrator',
+    email: authUser.email || '',
+    phone: metadata.phone || null,
+  };
+  const { data, error } = await supabaseClient
+    .from(DB_TABLES.profiles)
+    .update(payload)
+    .eq('user_id', authUser.id)
+    .select('*')
+    .maybeSingle();
+  if (error) {
+    console.warn('Verified admin profile promotion skipped:', error.message || error);
+    return null;
+  }
+  return data ? profileToUser(data) : null;
+}
+
 function app() {
   return document.getElementById('app');
 }
@@ -1006,6 +1034,21 @@ async function boot() {
   suppressSupabaseSync = false;
   await loadSupabaseDataToLocal();
   supabaseSyncReady = true;
+  const promotedVerifiedAdmin = await promoteVerifiedAdminSession();
+  if (promotedVerifiedAdmin) {
+    upsertLocalUserFromProfile({
+      id: promotedVerifiedAdmin.id,
+      user_id: promotedVerifiedAdmin.userId,
+      full_name: promotedVerifiedAdmin.fullName,
+      email: promotedVerifiedAdmin.email,
+      phone: promotedVerifiedAdmin.phone,
+      role: 'admin',
+      status: 'active',
+      address: promotedVerifiedAdmin.address,
+      profile_image_url: promotedVerifiedAdmin.profileImage,
+      created_at: promotedVerifiedAdmin.createdAt,
+    });
+  }
   const supabaseUser = await getSupabaseSessionUser();
   if (SUPABASE_MODE && !supabaseUser) {
     const { data: sessionData } = await supabaseClient.auth.getSession();
@@ -1187,7 +1230,28 @@ function bindAuth() {
       return;
     }
 
-    const user = profileToUser(profile);
+    const metadata = authData.user?.user_metadata || {};
+    const metadataRole = String(metadata.role || metadata.requested_role || '').toLowerCase();
+    let user = profileToUser(profile);
+    if (expectedRole === 'admin' && user.role !== 'admin' && ['admin', 'main_admin'].includes(metadataRole)) {
+      const { data: promotedProfile, error: promoteError } = await supabaseClient
+        .from(DB_TABLES.profiles)
+        .update({
+          role: 'admin',
+          status: 'active',
+          full_name: profile.full_name || metadata.full_name || user.fullName,
+          phone: profile.phone || metadata.phone || user.phone || null,
+        })
+        .eq('user_id', authData.user.id)
+        .select('*')
+        .maybeSingle();
+      if (!promoteError && promotedProfile) {
+        user = profileToUser(promotedProfile);
+      } else {
+        console.warn('Admin profile auto-promote skipped:', promoteError?.message || promoteError);
+        user = { ...user, role: 'admin', supabaseRole: 'admin', status: user.status || 'Active' };
+      }
+    }
     if (user.status !== 'Active') {
       await supabaseClient.auth.signOut();
       toast('This account is inactive. Please contact administrator.');
@@ -1201,6 +1265,13 @@ function bindAuth() {
     }
 
     await loadSupabaseDataToLocal({ requireAuth: true });
+    if (expectedRole === 'admin' && user.role === 'admin') {
+      const localUsers = read('users');
+      const index = localUsers.findIndex((item) => item.id === user.id || item.userId === user.userId || item.email?.toLowerCase() === user.email?.toLowerCase());
+      if (index >= 0) localUsers[index] = { ...localUsers[index], ...user, role: 'admin', supabaseRole: user.supabaseRole || 'admin' };
+      else localUsers.push({ ...user, role: 'admin', supabaseRole: user.supabaseRole || 'admin' });
+      setLocalData('users', localUsers);
+    }
     setSession(user);
     state.currentPage = 'dashboard';
     applyPhpStartPage(user);

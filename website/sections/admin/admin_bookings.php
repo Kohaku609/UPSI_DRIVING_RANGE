@@ -803,8 +803,8 @@ function upsi_section_admin_bookings_scripts(): void
         data: {
           full_name: String(fullName || '').trim(),
           phone: String(phone || '').trim(),
-          role: 'user',
-          requested_role: role,
+          role: role === 'admin' ? 'admin' : 'user',
+          requested_role: role === 'admin' ? 'admin' : 'user',
         },
       },
     };

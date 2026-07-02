@@ -1687,8 +1687,8 @@ async function createSupabaseAuthAccount({ fullName, email, phone, password, rol
       data: {
         full_name: String(fullName || '').trim() || safeEmail,
         phone: String(phone || '').trim(),
-        // Keep metadata as user. Main admin will promote additional admins in profiles after signup.
-        role: 'user',
+        role: role === 'admin' ? 'admin' : 'user',
+        requested_role: role === 'admin' ? 'admin' : 'user',
       },
     },
   });
