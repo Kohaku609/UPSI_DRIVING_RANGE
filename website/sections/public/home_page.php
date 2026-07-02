@@ -701,9 +701,10 @@ const SUPABASE_URL = PHP_CONFIG.SUPABASE_URL || "";
 const SUPABASE_ANON_KEY = PHP_CONFIG.SUPABASE_ANON_KEY || "";
 const BACKEND_API_BASE = PHP_CONFIG.BACKEND_API_BASE || "./api";
 
-const supabaseClient = window.supabase?.createClient && SUPABASE_URL && SUPABASE_ANON_KEY
+const supabaseClient = window.supabaseClient || (window.supabase?.createClient && SUPABASE_URL && SUPABASE_ANON_KEY
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-  : null;
+  : null);
+window.supabaseClient = supabaseClient;
 
 async function backendApi(endpoint, options = {}) {
   const cleanEndpoint = String(endpoint || '').replace(/^\/+/, '');
@@ -723,6 +724,7 @@ async function backendApi(endpoint, options = {}) {
 }
 
 const SUPABASE_MODE = Boolean(supabaseClient);
+window.SUPABASE_MODE = SUPABASE_MODE;
 let supabaseSyncReady = false;
 let suppressSupabaseSync = false;
 let supabaseHydrating = false;
@@ -1619,7 +1621,7 @@ async function loadSupabaseDataToLocal({ requireAuth = false } = {}) {
       const [profileRes, bookingRes, reviewRes] = await Promise.all([
         supabaseClient.from(DB_TABLES.profiles).select('*').order('created_at', { ascending: true }),
         supabaseClient.from(DB_TABLES.bookings)
-          .select('*, profiles:user_id(full_name,email), driving_ranges:driving_range_id(name), trainers:trainer_id(full_name), bucket_options:bucket_option_id(bucket_name,ball_count,member_price,non_member_price), tee_slots:tee_slot_id(*), payments(*)')
+          .select('*, profiles:user_id(full_name,email), driving_ranges:driving_range_id(name), trainers:trainer_id(full_name), bucket_options:bucket_option_id(bucket_name,ball_count,member_price,non_member_price), tee_slots:tee_slot_id(*)')
           .order('created_at', { ascending: false }),
         supabaseClient.from(DB_TABLES.reviews).select('*, profiles:user_id(full_name,email)').order('created_at', { ascending: false }),
       ]);

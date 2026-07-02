@@ -288,20 +288,6 @@ function upsi_section_admin_reports_scripts(): void
     return null;
   }
 
-  async function v46FindExistingPaymentId(bookingId) {
-    if (!bookingId || !isUuid(bookingId)) return null;
-    const { data, error } = await supabaseClient
-      .from(DB_TABLES.payments)
-      .select('id')
-      .eq('booking_id', bookingId)
-      .maybeSingle();
-    if (error) {
-      console.warn('V46 payment lookup skipped:', error?.message || error);
-      return null;
-    }
-    return data?.id || null;
-  }
-
   async function v46SyncPaymentForBooking(booking = {}) {
     if (!SUPABASE_MODE || !supabaseClient || !isUuid(booking.id)) return;
     const userId = await v46ProfileIdForBooking(booking);
@@ -318,13 +304,9 @@ function upsi_section_admin_reports_scripts(): void
       rejected_reason: paymentStatus === 'rejected' ? (booking.cancelReason || PAYMENT_REJECT_CANCEL_REASON) : null,
     };
 
-    const existingPaymentId = await v46FindExistingPaymentId(booking.id);
-    let result;
-    if (existingPaymentId) {
-      result = await supabaseClient.from(DB_TABLES.payments).update(payload).eq('id', existingPaymentId).select().maybeSingle();
-    } else {
-      result = await supabaseClient.from(DB_TABLES.payments).insert(payload).select().maybeSingle();
-    }
+    const result = await supabaseClient
+      .from(DB_TABLES.payments)
+      .upsert(payload, { onConflict: 'booking_id' });
 
     if (result.error) {
       console.error('V46 payment sync error:', result.error);

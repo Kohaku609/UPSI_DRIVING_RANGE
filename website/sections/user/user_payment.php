@@ -575,7 +575,7 @@ function upsi_section_user_payment_scripts(): void
       : allReviews.filter((review) => reviewCategoryV76(review) === reviewCategoryFilterV76);
 
     content().innerHTML = `
-      <div class="toolbar"><div><p class="eyebrow">Contact Information</p><h2>Contact & Review</h2><p class="muted">Contact information shown to users can be edited in Profile ΓåÆ Website Settings.</p></div></div>
+      <div class="toolbar"><div><p class="eyebrow">Contact Information</p><h2>Contact & Review</h2><p class="muted">Contact information shown to users can be edited in Profile - Website Settings.</p></div></div>
       ${typeof v53ContactCardsMarkup === 'function' ? v53ContactCardsMarkup() : ''}
       <div style="height:22px"></div>
       <div class="toolbar v64-feedback-filter-toolbar">
@@ -643,7 +643,7 @@ function upsi_section_user_payment_scripts(): void
   }
 
   function v80TimeToMinutes(value = '') {
-    let raw = v80Text(value).replace(/[ΓÇôΓÇö]/g, '-').replace(/\s+/g, ' ');
+    let raw = v80Text(value).replace(/[–—]/g, '-').replace(/\s+/g, ' ');
     if (!raw) return null;
     if (raw.includes('-')) raw = v80Text(raw.split('-').pop());
     raw = raw.replace(/^(time|booking time|session)\s*:?\s*/i, '').replace(/\s*\(.*\)\s*$/g, '').trim();
@@ -896,7 +896,7 @@ function upsi_section_user_payment_scripts(): void
   let v83Observer = null;
   let v83ApplyTimer = null;
 
-  const v83DeclarationText = 'This Web-Based Learning (WBL) project is part of the course DTD3053 ΓÇô Web Programming for Information Systems. The website is developed for educational purposes and practical company use. The project is scheduled to be completed in Semester 6, 2026, by Week 14. If any updates, maintenance, or changes are required after Week 15, the company should contact the Faculty of Computing and Meta-Technology, UPSI.';
+  const v83DeclarationText = 'This Web-Based Learning (WBL) project is part of the course DTD3053 - Web Programming for Information Systems. The website is developed for educational purposes and practical company use. The project is scheduled to be completed in Semester 6, 2026, by Week 14. If any updates, maintenance, or changes are required after Week 15, the company should contact the Faculty of Computing and Meta-Technology, UPSI.';
 
   const v83T = {
     en: {
@@ -905,7 +905,7 @@ function upsi_section_user_payment_scripts(): void
       continueLogin: 'Continue to Login', learnMore: 'Learn More', declaration: 'Web-Based Learning (WBL) Declaration',
       developedLearning: 'Developed for Learning', companyUse: 'Prepared for Company Use', facultySupport: 'Managed with Faculty of Computing and Meta-Technology, UPSI',
       teamTitle: 'Development Team & Course Lecturer', developer1: 'Developer 1', developer2: 'Developer 2', developer3: 'Developer 3', lecturer: 'Course Lecturer',
-      course: 'Course: DTD3053 ΓÇô Web Programming for Information Systems', aboutWebsite: 'About This Website',
+      course: 'Course: DTD3053 - Web Programming for Information Systems', aboutWebsite: 'About This Website',
       aboutBody: 'The UPSI Golf Booking System is a web application designed to simplify and streamline the booking process for golf facilities and services at UPSI. It provides a convenient platform for students, staff, members and public users to make reservations, manage bookings, and stay updated with the latest information about the golf centre.',
       reliable: 'Reliable', reliableText: 'Built with reliability and data security in mind.', accessible: 'Accessible', accessibleText: 'Access the system anytime, anywhere with internet.', efficient: 'Efficient', efficientText: 'Save time with fast and efficient booking management.',
       aboutHero: 'Learn more about the UPSI Golf Booking System, its purpose, academic context, and how it supports golf facility booking at Universiti Pendidikan Sultan Idris.',
@@ -920,7 +920,7 @@ function upsi_section_user_payment_scripts(): void
       projectInformation: 'Project Information', projectSub: 'UPSI Golf Booking System', projectIntro: 'This page provides an overview of the academic project, including its purpose, features, scope, and technologies used in development.',
       projectTitle: 'Project Title', projectTitleValue: 'UPSI GOLF DRIVING RANGE BOOKING MANAGEMENT SYSTEM', projectTitleText: 'A web-based application designed to simplify and streamline the booking process for golf facilities and services at UPSI Golf Driving Range.', projectType: 'Project Type', institution: 'Institution', institutionValue: 'Universiti Pendidikan Sultan Idris (UPSI)', institutionText: 'Developed by students of Universiti Pendidikan Sultan Idris (UPSI) under the Faculty of Computing and Meta-Technology.', projectPurposeText: 'To provide a convenient platform for students, staff, members, and the public to make reservations, manage bookings, and stay updated with the latest information about the golf centre.',
       targetUsers: 'Target Users', scope: 'Scope of System', scopeText: 'The system covers online booking for driving range slots, tee time reservations, trainer bookings, user management, booking management, schedules, and notifications/updates.', modules: 'Main Modules',
-      footerNote: 'UPSI Golf Booking System ΓÇö For Educational and Practical Use', ready: 'Ready to continue?', loginNow: 'Login Now', support: 'Need support?',
+      footerNote: 'UPSI Golf Booking System - For Educational and Practical Use', ready: 'Ready to continue?', loginNow: 'Login Now', support: 'Need support?',
       language: 'Language', malay: 'Malay', english: 'English',
     },
     ms: {
@@ -929,7 +929,7 @@ function upsi_section_user_payment_scripts(): void
       continueLogin: 'Terus ke Log Masuk', learnMore: 'Ketahui Lanjut', declaration: 'Deklarasi Web-Based Learning (WBL)',
       developedLearning: 'Dibangunkan untuk Pembelajaran', companyUse: 'Disediakan untuk Kegunaan Syarikat', facultySupport: 'Diurus dengan sokongan Fakulti Komputeran dan Meta-Teknologi, UPSI',
       teamTitle: 'Pasukan Pembangunan & Pensyarah Kursus', developer1: 'Pembangun 1', developer2: 'Pembangun 2', developer3: 'Pembangun 3', lecturer: 'Pensyarah Kursus',
-      course: 'Kursus: DTD3053 ΓÇô Pengaturcaraan Web untuk Sistem Maklumat', aboutWebsite: 'Tentang Website Ini',
+      course: 'Kursus: DTD3053 - Pengaturcaraan Web untuk Sistem Maklumat', aboutWebsite: 'Tentang Website Ini',
       aboutBody: 'UPSI Golf Booking System ialah aplikasi web yang dibangunkan untuk memudahkan dan menyusun proses tempahan kemudahan serta perkhidmatan golf di UPSI. Sistem ini menyediakan platform yang mudah untuk pelajar, staf, ahli dan orang awam membuat tempahan, mengurus tempahan dan mendapatkan maklumat terkini berkaitan pusat golf.',
       reliable: 'Boleh Dipercayai', reliableText: 'Dibina dengan penekanan terhadap kebolehpercayaan dan keselamatan data.', accessible: 'Mudah Diakses', accessibleText: 'Sistem boleh diakses pada bila-bila masa dan di mana-mana sahaja dengan internet.', efficient: 'Efisien', efficientText: 'Menjimatkan masa melalui pengurusan tempahan yang pantas dan tersusun.',
       aboutHero: 'Ketahui maklumat tentang UPSI Golf Booking System, tujuan, konteks akademik dan sokongannya terhadap tempahan kemudahan golf di Universiti Pendidikan Sultan Idris.',
@@ -944,7 +944,7 @@ function upsi_section_user_payment_scripts(): void
       projectInformation: 'Maklumat Projek', projectSub: 'Sistem Tempahan UPSI Golf', projectIntro: 'Halaman ini memberi gambaran keseluruhan projek akademik termasuk tujuan, ciri, skop dan teknologi yang digunakan dalam pembangunan.',
       projectTitle: 'Tajuk Projek', projectTitleValue: 'SISTEM PENGURUSAN TEMPAHAN UPSI GOLF DRIVING RANGE', projectTitleText: 'Aplikasi web yang direka untuk memudahkan dan menyusun proses tempahan kemudahan serta perkhidmatan golf di UPSI Golf Driving Range.', projectType: 'Jenis Projek', institution: 'Institusi', institutionValue: 'Universiti Pendidikan Sultan Idris (UPSI)', institutionText: 'Dibangunkan oleh pelajar Universiti Pendidikan Sultan Idris (UPSI) di bawah Fakulti Komputeran dan Meta-Teknologi.', projectPurposeText: 'Untuk menyediakan platform yang mudah kepada pelajar, staf, ahli dan orang awam bagi membuat tempahan, mengurus tempahan serta mendapatkan maklumat terkini berkaitan pusat golf.',
       targetUsers: 'Sasaran Pengguna', scope: 'Skop Sistem', scopeText: 'Sistem ini merangkumi tempahan dalam talian untuk slot driving range, tempahan tee time, tempahan jurulatih, pengurusan pengguna, pengurusan tempahan, jadual serta notifikasi/kemas kini.', modules: 'Modul Utama',
-      footerNote: 'UPSI Golf Booking System ΓÇö Untuk Kegunaan Pendidikan dan Praktikal', ready: 'Sedia untuk teruskan?', loginNow: 'Log Masuk Sekarang', support: 'Perlukan bantuan?',
+      footerNote: 'UPSI Golf Booking System - Untuk Kegunaan Pendidikan dan Praktikal', ready: 'Sedia untuk teruskan?', loginNow: 'Log Masuk Sekarang', support: 'Perlukan bantuan?',
       language: 'Bahasa', malay: 'Bahasa Melayu', english: 'English',
     }
   };
@@ -986,7 +986,7 @@ function upsi_section_user_payment_scripts(): void
   }
 
   function v83DeclarationPanel({ compact = false } = {}) {
-    return `<section class="v83-declaration-card ${compact ? 'compact' : ''}"><div class="v83-declaration-icon">🎓</div><div class="v83-declaration-title"><h2>${esc(tx('declaration'))}</h2></div><p>${esc(v83Lang === 'ms' ? 'Projek Web-Based Learning (WBL) ini merupakan sebahagian daripada kursus DTD3053 – Pengaturcaraan Web untuk Sistem Maklumat. Website ini dibangunkan untuk tujuan pendidikan dan kegunaan praktikal syarikat. Projek ini dijadualkan siap pada Semester 6, 2026, sebelum Minggu 14. Sekiranya kemas kini, penyelenggaraan atau perubahan diperlukan selepas Minggu 15, pihak syarikat perlu menghubungi Fakulti Komputeran dan Meta-Teknologi, UPSI.' : v83DeclarationText)}</p>${compact ? '' : `<ul><li>🎓 ${esc(tx('developedLearning'))}</li><li>🎓 ${esc(tx('companyUse'))}</li><li>🎓 ${esc(tx('facultySupport'))}</li></ul>`}</section>`;
+    return `<section class="v83-declaration-card ${compact ? 'compact' : ''}"><div class="v83-declaration-icon">🎓</div><div class="v83-declaration-title"><h2>${esc(tx('declaration'))}</h2></div><p>${esc(v83Lang === 'ms' ? 'Projek Web-Based Learning (WBL) ini merupakan sebahagian daripada kursus DTD3053 - Pengaturcaraan Web untuk Sistem Maklumat. Website ini dibangunkan untuk tujuan pendidikan dan kegunaan praktikal syarikat. Projek ini dijadualkan siap pada Semester 6, 2026, sebelum Minggu 14. Sekiranya kemas kini, penyelenggaraan atau perubahan diperlukan selepas Minggu 15, pihak syarikat perlu menghubungi Fakulti Komputeran dan Meta-Teknologi, UPSI.' : v83DeclarationText)}</p>${compact ? '' : `<ul><li>🎓 ${esc(tx('developedLearning'))}</li><li>🎓 ${esc(tx('companyUse'))}</li><li>🎓 ${esc(tx('facultySupport'))}</li></ul>`}</section>`;
   }
 
   function v83Footer() {
