@@ -1345,8 +1345,16 @@ async function promoteSupabaseProfileToAdmin(user = {}) {
     if (lastResult.data?.role === 'admin') return lastResult;
   }
 
+  if (typeof supabaseClient.rpc === 'function') {
+    const rpcResult = await supabaseClient.rpc('upsi_promote_profile_to_admin', { target_email: email });
+    if (!rpcResult.error && rpcResult.data) return rpcResult;
+    if (rpcResult.error && !String(rpcResult.error.message || '').toLowerCase().includes('could not find')) {
+      return rpcResult;
+    }
+  }
+
   if (!lastResult.error && lastResult.data?.role !== 'admin') {
-    lastResult.error = new Error('Profile was created, but Supabase kept the role as user. Please check profiles RLS update policy.');
+    lastResult.error = new Error('Profile was created, but Supabase kept the role as user. Run supabase_admin_profile_role_fix.sql in Supabase SQL Editor.');
   }
   return lastResult;
 }
