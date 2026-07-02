@@ -99,7 +99,7 @@ body[data-theme="dark"] .qr-empty-state {
 /* =========================================================
    V110 mobile safety patch: prevent overlapping controls
    ========================================================= */
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   html,
   body {
     max-width: 100%;
@@ -259,6 +259,10 @@ body[data-theme="dark"] .qr-empty-state {
     min-width: 0 !important;
   }
 
+  .page-content {
+    padding: 16px !important;
+  }
+
   .topbar {
     position: static !important;
     flex-wrap: wrap !important;
@@ -371,8 +375,47 @@ body[data-theme="dark"] .qr-empty-state {
   .v83-declaration-card,
   .v83-about-strip {
     width: 100% !important;
+    max-width: 100% !important;
     min-width: 0 !important;
     padding: 16px !important;
+  }
+
+  .v83-public-site,
+  .v83-public-main {
+    overflow-x: hidden !important;
+  }
+
+  .v83-public-main {
+    padding: 16px !important;
+    display: grid !important;
+    gap: 16px !important;
+  }
+
+  .v83-declaration-card,
+  .v83-about-strip,
+  .v83-public-card,
+  .v83-info-grid article,
+  .v83-project-grid article,
+  .v83-team-grid article {
+    border-radius: 16px !important;
+  }
+
+  .v83-declaration-card {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    text-align: center !important;
+  }
+
+  .v83-declaration-title {
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(7, 93, 49, .12) !important;
+    padding-right: 0 !important;
+    padding-bottom: 12px !important;
+  }
+
+  .v83-about-strip {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
   }
 
   .table-wrap {
