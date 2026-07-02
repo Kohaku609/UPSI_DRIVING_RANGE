@@ -686,7 +686,9 @@ openAdminAccountForm = function v26OpenAdminAccountForm(admin = null) {
         upsertAdminLocal(newUser);
         closeModal();
         adminSettings();
-        return toast('Additional admin account registered in Supabase.');
+        return toast(result.emailConfirmationSent
+          ? `Additional admin account registered. Verification email sent to ${payload.email}.`
+          : `Additional admin account registered. Supabase email confirmation is disabled, so no verification email was required for ${payload.email}.`);
       }
       const { data, error } = await updateSupabaseProfileByEmail(payload.email, {
         full_name: payload.fullName,

@@ -771,6 +771,17 @@ function upsi_section_admin_bookings_scripts(): void
     return String(value).slice(0, 10);
   }
 
+  function authEmailRedirectUrlV40() {
+    try {
+      const url = new URL(window.location.href);
+      url.hash = '';
+      url.searchParams.set('verified', 'admin');
+      return url.toString();
+    } catch (_) {
+      return `${window.location.origin}${window.location.pathname}?verified=admin`;
+    }
+  }
+
   const baseProfileToUserV40 = profileToUser;
   profileToUser = function profileToUserV40(profile = {}) {
     const user = baseProfileToUserV40(profile);
@@ -788,22 +799,24 @@ function upsi_section_admin_bookings_scripts(): void
       email: safeEmail,
       password: safePassword,
       options: {
+        emailRedirectTo: authEmailRedirectUrlV40(),
         data: {
           full_name: String(fullName || '').trim(),
           phone: String(phone || '').trim(),
           role: 'user',
+          requested_role: role,
         },
       },
     };
     const { data, error: signUpError } = await supabaseClient.auth.signUp(signUpPayload);
     if (signUpError) {
       if (restoreSession) await restoreSupabaseSession(restoreSession);
-      return { data, profile: null, error: signUpError };
+      return { data, profile: null, error: signUpError, emailConfirmationSent: false };
     }
     const authUserId = data?.user?.id;
     if (!authUserId) {
       if (restoreSession) await restoreSupabaseSession(restoreSession);
-      return { data, profile: null, error: null };
+      return { data, profile: null, error: null, emailConfirmationSent: !data?.session };
     }
     const profilePayload = {
       user_id: authUserId,
@@ -823,7 +836,7 @@ function upsi_section_admin_bookings_scripts(): void
       .select()
       .maybeSingle();
     if (restoreSession) await restoreSupabaseSession(restoreSession);
-    return { data, profile, error: profileError };
+    return { data, profile, error: profileError, emailConfirmationSent: !data?.session };
   };
 
   updateProfileInSupabaseFromUser = async function updateProfileInSupabaseFromUserV40(user = {}) {
