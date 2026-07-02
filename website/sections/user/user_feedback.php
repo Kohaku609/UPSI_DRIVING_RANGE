@@ -60,6 +60,28 @@ body[data-theme="dark"] .qr-empty-state {
   color: #e9fff0 !important;
 }
 
+.feedback-category-card {
+  overflow: hidden;
+}
+
+.feedback-category-card .card-top {
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.feedback-category-card .card-top > div {
+  min-width: 0;
+}
+
+.feedback-category-card .status-pill {
+  flex: 0 1 auto;
+  max-width: 100%;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  text-align: center;
+  line-height: 1.15;
+}
+
 
 /* =========================================================
    V100 Tee Time search bar layout
