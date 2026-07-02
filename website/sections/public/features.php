@@ -1136,7 +1136,7 @@ function openAdminAccountForm(admin = null) {
       ${admin ? `<label class="wide">Inactive Reason / Reference<textarea name="inactiveReason" placeholder="Required if status is changed to Inactive.">${escapeHtml(admin?.inactiveReason || '')}</textarea></label>` : ''}
       <label class="wide">${admin ? 'New Password (optional)' : 'Password'}<input name="password" type="password" minlength="6" placeholder="${admin ? 'Leave blank to keep current password' : 'Minimum 6 characters'}" ${admin ? '' : 'required'}></label>
       <button class="btn btn-primary wide" type="submit">${admin ? 'Save Admin Account' : 'Register Admin Account'}</button>
-      ${admin ? '<div class="wide danger-zone"><p><strong>Inactive Account Reference</strong><br><span>To deactivate this additional admin, choose Inactive above and enter a reason. The record will remain visible for reference.</span></p></div>' : ''}
+      ${admin ? '<div class="wide danger-zone"><p><strong>Delete Admin Account</strong><br><span>Use this only when the additional admin profile should be removed from website records.</span></p><button class="btn btn-danger-soft" type="button" data-delete-admin-inside-form>Delete Admin Account</button></div>' : ''}
     </form>
   `);
 

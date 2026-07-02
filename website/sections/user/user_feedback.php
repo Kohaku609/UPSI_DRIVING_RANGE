@@ -1058,6 +1058,71 @@ function upsi_section_user_feedback_scripts(): void
     });
   }
 
+  async function v99DeleteAdminProfile(admin) {
+    if (!admin || v99IsPrimaryAdmin(admin)) return;
+    if (typeof SUPABASE_MODE !== 'undefined' && SUPABASE_MODE && typeof supabaseClient !== 'undefined' && DB_TABLES?.profiles) {
+      let query = supabaseClient.from(DB_TABLES.profiles).delete();
+      if (v99IsUuid(admin.id)) query = query.eq('id', admin.id);
+      else query = query.eq('email', String(admin.email || '').toLowerCase());
+
+      const { error } = await query;
+      if (error) {
+        console.error('V99 admin delete error:', error);
+        throw new Error(error.message || 'Failed to delete admin profile in Supabase.');
+      }
+    }
+
+    const users = typeof read === 'function' ? read('users') : [];
+    const filtered = users.filter((user) => (
+      user.id !== admin.id
+      && String(user.email || '').toLowerCase() !== String(admin.email || '').toLowerCase()
+    ));
+    if (typeof setLocalData === 'function') setLocalData('users', filtered);
+
+    if (typeof loadSupabaseDataToLocal === 'function') {
+      await loadSupabaseDataToLocal({ requireAuth: true });
+    }
+  }
+
+  function v99PromptDeleteAdmin(admin) {
+    if (!admin || v99IsPrimaryAdmin(admin)) return;
+    confirmAction({
+      title: 'Delete Admin Account',
+      message: `Delete ${admin.fullName || admin.email} from administrator accounts? This removes the profile record used by the website.`,
+      confirmText: 'Delete Admin',
+      danger: true,
+      onConfirm: async () => {
+        try {
+          await v99DeleteAdminProfile(admin);
+          if (document.querySelector('.modal-card')) closeModal();
+          if (typeof adminSettings === 'function') adminSettings();
+          v99Toast('Additional admin deleted from website records.');
+        } catch (err) {
+          console.error('V99 delete admin failed:', err);
+          v99Toast(err.message || 'Failed to delete admin.');
+        }
+      },
+    });
+  }
+
+  const v99BaseAdminSettings = typeof adminSettings === 'function' ? adminSettings : null;
+  let v99AdminSettingsRefreshing = false;
+  adminSettings = async function adminSettingsV99Fresh() {
+    if (v99BaseAdminSettings && !v99AdminSettingsRefreshing && typeof loadSupabaseDataToLocal === 'function') {
+      v99AdminSettingsRefreshing = true;
+      try {
+        if (typeof setTitle === 'function') setTitle('Profile', 'Administrator Profile');
+        if (typeof content === 'function') {
+          content().innerHTML = '<div class="empty-state"><h3>Refreshing admin records</h3><p>Please wait while the latest Supabase profiles are loaded.</p></div>';
+        }
+        await loadSupabaseDataToLocal({ requireAuth: true });
+      } finally {
+        v99AdminSettingsRefreshing = false;
+      }
+    }
+    return v99BaseAdminSettings ? v99BaseAdminSettings() : undefined;
+  };
+
   adminAccountManagementSection = function adminAccountManagementSectionV99(currentUser) {
     const admins = v99AdminUsers();
     const canManageAdmins = v99IsPrimaryAdmin(currentUser);
@@ -1094,6 +1159,7 @@ function upsi_section_user_feedback_scripts(): void
                         ${inactive
                           ? `<button class="btn btn-primary" type="button" data-activate-admin-account="${v99Esc(admin.id)}">Activate</button>`
                           : `<button class="btn btn-danger-soft" type="button" data-deactivate-admin-account="${v99Esc(admin.id)}">Deactivate</button>`}
+                        <button class="btn btn-danger-soft" type="button" data-delete-admin-account="${v99Esc(admin.id)}">Delete</button>
                       </div>
                     ` : '<span class="muted">Protected</span>'}
                   </td>
@@ -1132,6 +1198,13 @@ function upsi_section_user_feedback_scripts(): void
       btn.addEventListener('click', () => {
         const admin = v99AdminUsers().find((user) => user.id === btn.dataset.activateAdminAccount);
         v99PromptActivateAdmin(admin);
+      });
+    });
+
+    root.querySelectorAll('[data-delete-admin-account]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const admin = v99AdminUsers().find((user) => user.id === btn.dataset.deleteAdminAccount);
+        v99PromptDeleteAdmin(admin);
       });
     });
   };

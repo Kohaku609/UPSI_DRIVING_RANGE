@@ -1007,6 +1007,15 @@ async function boot() {
   await loadSupabaseDataToLocal();
   supabaseSyncReady = true;
   const supabaseUser = await getSupabaseSessionUser();
+  if (SUPABASE_MODE && !supabaseUser) {
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    if (sessionData?.session?.user) {
+      clearSession();
+      renderAuth();
+      toast('Account profile no longer exists. Please contact the main administrator.');
+      return;
+    }
+  }
   const user = supabaseUser || getSessionUser();
   if (user) {
     setSession(user);

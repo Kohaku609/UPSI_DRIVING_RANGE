@@ -1625,7 +1625,7 @@ async function loadSupabaseDataToLocal({ requireAuth = false } = {}) {
           .order('created_at', { ascending: false }),
         supabaseClient.from(DB_TABLES.reviews).select('*, profiles:user_id(full_name,email)').order('created_at', { ascending: false }),
       ]);
-      if (!profileRes.error && Array.isArray(profileRes.data) && profileRes.data.length) {
+      if (!profileRes.error && Array.isArray(profileRes.data)) {
         setLocalData('users', profileRes.data.map(profileToUser));
       }
       if (!bookingRes.error && Array.isArray(bookingRes.data)) {
