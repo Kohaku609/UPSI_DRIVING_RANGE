@@ -27,6 +27,31 @@ function upsi_section_admin_payments_styles(): void
 .qr-download-btn {
   margin-top: 12px;
 }
+.qr-code.qr-download-wrap,
+.qr-mini.qr-download-wrap {
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  padding: 12px !important;
+}
+.qr-code.qr-download-wrap img,
+.qr-mini.qr-download-wrap img {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 220px !important;
+  flex: 0 0 auto;
+}
+.qr-download-btn {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 48px;
+  height: auto;
+  white-space: normal;
+  line-height: 1.2;
+  text-align: center;
+}
 
 [data-add-trainer] {
   position: relative;
