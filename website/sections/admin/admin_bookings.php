@@ -818,6 +818,7 @@ function upsi_section_admin_bookings_scripts(): void
       if (restoreSession) await restoreSupabaseSession(restoreSession);
       return { data, profile: null, error: null, emailConfirmationSent: !data?.session };
     }
+    if (restoreSession) await restoreSupabaseSession(restoreSession);
     const profilePayload = {
       user_id: authUserId,
       full_name: String(fullName || '').trim(),
@@ -835,7 +836,6 @@ function upsi_section_admin_bookings_scripts(): void
       .upsert(profilePayload, { onConflict: 'email' })
       .select()
       .maybeSingle();
-    if (restoreSession) await restoreSupabaseSession(restoreSession);
     return { data, profile, error: profileError, emailConfirmationSent: !data?.session };
   };
 

@@ -645,14 +645,35 @@ openAdminAccountForm = function v26OpenAdminAccountForm(admin = null) {
   const form = document.getElementById('adminAccountForm');
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
+    if (form.dataset.saving === 'true') return;
+    form.dataset.saving = 'true';
+    const saveButton = form.querySelector('button[type="submit"]');
+    const originalButtonText = saveButton?.textContent || '';
+    if (saveButton) {
+      saveButton.disabled = true;
+      saveButton.textContent = admin ? 'Saving...' : 'Registering...';
+    }
+    const resetSaveState = () => {
+      form.dataset.saving = 'false';
+      if (saveButton) {
+        saveButton.disabled = false;
+        saveButton.textContent = originalButtonText;
+      }
+    };
     const formData = new FormData(form);
     const email = admin ? admin.email.toLowerCase() : formData.get('email').trim().toLowerCase();
     const existingUserForEmail = read('users').find((user) => user.email?.toLowerCase() === email && user.id !== admin?.id);
-    if (existingUserForEmail && !admin && existingUserForEmail.role === 'admin') return toast('This email is already registered as an admin.');
+    if (existingUserForEmail && !admin && existingUserForEmail.role === 'admin') {
+      resetSaveState();
+      return toast('This email is already registered as an admin.');
+    }
     const passwordValue = formData.get('password') || '';
     const nextStatus = formData.get('status');
     const inactiveReasonInput = String(formData.get('inactiveReason') || '').trim();
-    if (admin && nextStatus === 'Inactive' && !inactiveReasonInput) return toast('Main admin must enter a reason before inactivating this admin account.');
+    if (admin && nextStatus === 'Inactive' && !inactiveReasonInput) {
+      resetSaveState();
+      return toast('Main admin must enter a reason before inactivating this admin account.');
+    }
     const payload = {
       id: admin?.id || makeId('A'),
       userId: admin?.userId || '',
@@ -694,6 +715,40 @@ openAdminAccountForm = function v26OpenAdminAccountForm(admin = null) {
           closeModal();
           adminSettings();
           return toast('Existing user promoted to additional admin.');
+        }
+
+        const remoteExisting = await supabaseClient
+          .from(DB_TABLES.profiles)
+          .select('*')
+          .eq('email', email)
+          .maybeSingle();
+        if (remoteExisting.error && String(remoteExisting.error.message || '').toLowerCase().includes('jwt')) {
+          return toast('Admin session expired. Please logout and login again before registering admin.');
+        }
+        if (!remoteExisting.error && remoteExisting.data) {
+          const remoteUser = profileToUser(remoteExisting.data);
+          if (remoteUser.role === 'admin') return toast('This email is already registered as an admin.');
+          const promoted = typeof promoteSupabaseProfileToAdmin === 'function'
+            ? await promoteSupabaseProfileToAdmin({
+                ...remoteUser,
+                ...payload,
+                id: remoteUser.id,
+                userId: remoteUser.userId,
+              })
+            : await updateSupabaseProfileByEmail(email, {
+                full_name: payload.fullName,
+                phone: payload.phone || null,
+                address: payload.address || null,
+                role: 'admin',
+                status: accountStatusToDb(payload.status),
+              });
+          if (promoted.error) return toast(promoted.error.message || 'Failed to promote existing Supabase profile to admin.');
+          const promotedUser = promoted.data ? profileToUser(promoted.data) : { ...remoteUser, ...payload };
+          upsertAdminLocal({ ...promotedUser, role: 'admin', supabaseRole: 'admin' });
+          await loadSupabaseDataToLocal({ requireAuth: true });
+          closeModal();
+          adminSettings();
+          return toast('Existing Supabase profile promoted to additional admin.');
         }
 
         if (!passwordValue || passwordValue.length < 6) return toast('Password must be at least 6 characters to create a login account.');
@@ -746,10 +801,20 @@ openAdminAccountForm = function v26OpenAdminAccountForm(admin = null) {
         message: `Please confirm that you want to deactivate ${payload.fullName}. The reason will be saved for reference.`,
         confirmText: 'Deactivate Admin',
         danger: true,
-        onConfirm: saveAdmin,
+        onConfirm: async () => {
+          try {
+            await saveAdmin();
+          } finally {
+            resetSaveState();
+          }
+        },
       });
     } else {
-      await saveAdmin();
+      try {
+        await saveAdmin();
+      } finally {
+        resetSaveState();
+      }
     }
   });
 };
